@@ -1,0 +1,51 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'rag_cli_app'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=rag_cli_app",
+                    "--package=rag_cli_app"
+                ],
+                "filter": {
+                    "name": "rag_cli_app",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--file=prob.pdf",
+                "--prompt=Hallo"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "STANDARD_FONTS": "./pdf_fonts/"
+            },
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'rag_cli_app'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=rag_cli_app",
+                    "--package=rag_cli_app"
+                ],
+                "filter": {
+                    "name": "rag_cli_app",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
