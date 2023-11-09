@@ -131,8 +131,5 @@ async fn main() {
 }
 
 fn set_font_env_var() {
-    std::env::set_var(
-        "STANDARD_FONTS",
-        "C:\\Users\\buttgmsf\\Documents\\Rust\\rag_cli_app\\pdf_fonts\\",
-    );
+    std::env::set_var("STANDARD_FONTS", ".\\pdf_fonts\\");
 }
