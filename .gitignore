@@ -1,4 +1,4 @@
 /target
-/models
 /pdfs
-/pdf_fonts
+models/mistral-7b-instruct-v0.1.Q2_K.gguf
+models/mistral-7b-instruct-v0.1.Q4_K_S.gguf
