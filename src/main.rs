@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use clap::Parser;
 use orca::{
     llm::{bert::Bert, quantized::Quantized, Embedding},
@@ -29,7 +31,7 @@ async fn main() {
 
     println!("FILE: {}\nPROMPT: {}", args.file, args.prompt);
 
-    let pdf_records: Vec<Record> = Pdf::from_file(&args.file, false).spin().unwrap().split(399);
+    let pdf_records: Vec<Record> = Pdf::from_file(&args.file, false).spin().unwrap().split(250);
     let bert = Bert::new().build_model_and_tokenizer().await.unwrap();
 
     let collection_name = std::path::Path::new(&args.file)
@@ -42,25 +44,30 @@ async fn main() {
     let qdrant = Qdrant::new("http://localhost:6334");
     println!("CONNECTED!");
 
-    print!("Collection {} ... ", collection_name);
+    print!("Collection '{}' ... ", collection_name);
     if qdrant
         .create_collection(&collection_name, 384)
         .await
         .is_ok()
     {
-        println!("CREATED!");
-
-        let embeddings = bert
-            .generate_embeddings(prompts!(&pdf_records))
-            .await
-            .unwrap();
-        qdrant
-            .insert_many(&collection_name, embeddings.to_vec2().unwrap(), pdf_records)
-            .await
-            .unwrap();
+        println!("was newly created!")
     } else {
-        println!("already exists!");
+        println!("had to be deleted and created anew!");
+        qdrant.delete_collection(&collection_name).await.unwrap();
+        qdrant
+            .create_collection(&collection_name, 384)
+            .await
+            .unwrap();
     }
+
+    let embeddings = bert
+        .generate_embeddings(prompts!(&pdf_records))
+        .await
+        .unwrap();
+    qdrant
+        .insert_many(&collection_name, embeddings.to_vec2().unwrap(), pdf_records)
+        .await
+        .unwrap();
 
     print!("Embedding the prompt ... ");
     let query_embedding = bert.generate_embedding(prompt!(args.prompt)).await.unwrap();
@@ -71,7 +78,7 @@ async fn main() {
         .search(
             &collection_name,
             query_embedding.to_vec().unwrap().clone(),
-            5,
+            7,
             None,
         )
         .await
@@ -109,11 +116,13 @@ async fn main() {
             .collect::<Vec<String>>()
     });
 
+    println!("{:#?}", context);
+
     print!("Building model ... ");
     let mistral = Quantized::new()
         .with_model(orca::llm::quantized::Model::Mistral7bInstruct)
-        .with_sample_len(7500)
-        .load_model_from_path("./models/mistral-7b-instruct-v0.1.Q2_K.gguf")
+        .with_sample_len(150)
+        .load_model_from_path("./models/mistral-7b-instruct-v0.1.Q4_K_M.gguf")
         .unwrap()
         .build_model()
         .unwrap();
@@ -124,10 +133,19 @@ async fn main() {
     pipe.load_context(&Context::new(context).unwrap()).await;
     println!("done!");
 
+    let start_time = Instant::now();
+
     println!("Crafting response ...");
     let response = pipe.execute("query").await.unwrap();
 
-    println!("Response: {}", response.content());
+    let duration = start_time.elapsed().as_secs();
+    println!("\nResponse: {}", response.content());
+
+    println!(
+        "\nGenerating this response took {}:{} minutes.",
+        duration / 60,
+        duration % 60
+    );
 }
 
 fn set_font_env_var() {
