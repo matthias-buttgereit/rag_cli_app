@@ -4,7 +4,7 @@ pub use orca::llm::bert::Bert;
 pub use orca::llm::quantized::Quantized;
 pub use orca::qdrant::Qdrant;
 
-use orca::{
+pub use orca::{
     llm::Embedding,
     prompts,
     record::{pdf::Pdf, Record, Spin},
