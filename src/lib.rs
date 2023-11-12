@@ -1,9 +1,12 @@
 use std::path::Path;
 
+pub use orca::llm::bert::Bert;
+pub use orca::llm::quantized::Quantized;
+pub use orca::qdrant::Qdrant;
+
 use orca::{
-    llm::{bert::Bert, Embedding},
+    llm::Embedding,
     prompts,
-    qdrant::Qdrant,
     record::{pdf::Pdf, Record, Spin},
 };
 
