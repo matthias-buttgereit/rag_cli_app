@@ -26,7 +26,7 @@ async fn main() {
     let args = Args::parse();
     let collection_name = get_stem_name(&args.file);
 
-    let pdf_records = split_pdfs(&args.file, 250);
+    let pdf_records = split_pdfs(&args.file, 750);
     let qdrant = vectordb_with_collection("http://localhost:6334", collection_name).await;
 
     let bert = Bert::new().build_model_and_tokenizer().await.unwrap();
@@ -41,7 +41,7 @@ async fn main() {
         .search(
             collection_name,
             query_embedding.to_vec().unwrap().clone(),
-            7,
+            5,
             None,
         )
         .await
@@ -60,16 +60,20 @@ async fn main() {
             .collect::<Vec<String>>()
     });
 
+    println!("Context: {:#?}", context);
+
     let mistral = Quantized::new()
         .with_model(orca::llm::quantized::Model::Mistral7bInstruct)
-        .with_sample_len(150)
-        .load_model_from_path("./models/mistral-7b-instruct-v0.1.Q4_K_M.gguf")
+        .with_sample_len(400)
+        .load_model_from_path("./models/mistral-7b-instruct-v0.1.Q4_K_S.gguf")
         .unwrap()
         .build_model()
         .unwrap();
 
-    let mut pipe = LLMPipeline::new(&mistral).with_template("query", PROMPT_FOR_MODEL);
-    pipe.load_context(&Context::new(context).unwrap()).await;
+    let pipe = LLMPipeline::new(&mistral)
+        .load_template("query", PROMPT_FOR_MODEL)
+        .unwrap();
+    let pipe = pipe.load_context(&Context::new(context).unwrap()).unwrap();
 
     let response = pipe.execute("query").await.unwrap();
     println!("\nResponse: {}", response.content());

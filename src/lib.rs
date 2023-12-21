@@ -16,13 +16,14 @@ pub fn set_font_env_var() {
 
 pub fn split_pdfs(filename: &str, length: usize) -> Vec<Record> {
     Pdf::from_file(filename, false)
+        .unwrap()
         .spin()
         .unwrap()
         .split(length)
 }
 
 pub async fn vectordb_with_collection(database_ip: &str, collection_name: &str) -> Qdrant {
-    let qdrant = Qdrant::new(database_ip);
+    let qdrant = Qdrant::new(database_ip).unwrap();
 
     if qdrant.create_collection(collection_name, 384).await.is_ok() {
         qdrant

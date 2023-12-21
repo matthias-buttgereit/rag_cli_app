@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.4", features = ["derive"] }
-orca = { git = "https://github.com/scrippt-tech/orca", rev = "51e1e259e23b0f3dcdc73601df62405b8de2becc" }
+orca = { git = "https://github.com/scrippt-tech/orca", rev = "6a903b38a769c02ff153699657321c967abc67da", package = "orca-core" }
 serde = "1.0"
 serde_json = "1.0"
 tokio = { version = "1.33", features = ["macros"] }
